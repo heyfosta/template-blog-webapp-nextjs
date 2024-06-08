@@ -32,6 +32,7 @@
     "@contentful/live-preview": "^4.2.1",
     "@contentful/rich-text-react-renderer": "^15.16.2",
     "@next/bundle-analyzer": "^13.0.4",
+    "@supabase/supabase-js": "^2.43.4",
     "dotenv": "^16.0.3",
     "graphql": "^16.6.0",
     "next": "^13.4.1",
@@ -43,7 +44,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-focus-lock": "^2.9.2",
-    "sharp": "^0.32.6"
+    "sharp": "^0.32.6",
+    "stripe": "^15.10.0"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.19.1",
