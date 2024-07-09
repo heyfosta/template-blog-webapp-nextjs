@@ -33,6 +33,9 @@ async function updateUserSubscription(
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('Webhook received:', new Date().toISOString());
+  console.log('Request method:', req.method);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
   if (req.method === 'POST') {
     const sig = req.headers['stripe-signature'] as string;
 
