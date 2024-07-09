@@ -1,3 +1,4 @@
+//src\pages\index.page.tsx
 import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import { GetStaticProps, InferGetStaticPropsType } from 'next';
 import { useTranslation } from 'next-i18next';

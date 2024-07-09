@@ -1,3 +1,4 @@
+//src\pages\_app.page.tsx
 import { ContentfulLivePreviewProvider } from '@contentful/live-preview/react';
 import { appWithTranslation } from 'next-i18next';
 import type { AppProps } from 'next/app';
