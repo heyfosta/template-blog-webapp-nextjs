@@ -1,4 +1,4 @@
-//src\pages\api\subscription-cancellation.page.ts
+//
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
@@ -28,8 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (fetchError) throw fetchError
 
-      if (currentSub?.subscription_type !== 'premium') {
-        return res.status(400).json({ error: 'No active premium subscription found' })
+      if (currentSub?.subscription_type !== 'premium' && currentSub?.subscription_type !== 'ultra') {
+        return res.status(400).json({ error: 'No active premium or ultra subscription found' })
       }
 
       // Cancel the subscription in Stripe

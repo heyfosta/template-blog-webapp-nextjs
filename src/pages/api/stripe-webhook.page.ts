@@ -44,6 +44,7 @@ async function updateUserSubscription(
     `Updating subscription for user ${userId}, model ${modelId} to ${subscriptionType}`,
   );
   try {
+    const ULTRA_TOKEN_LIMIT = 10000; 
     const PREMIUM_TOKEN_LIMIT = 5000;
     const DEFAULT_TOKEN_LIMIT = 1000;
     const currentTime = new Date().toISOString();
@@ -52,7 +53,10 @@ async function updateUserSubscription(
       user_id: userId,
       model_id: modelId,
       subscription_type: subscriptionType,
-      token_limit: subscriptionType === 'premium' ? PREMIUM_TOKEN_LIMIT : DEFAULT_TOKEN_LIMIT,
+      token_limit: 
+          subscriptionType === 'ultra' ? ULTRA_TOKEN_LIMIT :
+          subscriptionType === 'premium' ? PREMIUM_TOKEN_LIMIT :
+          DEFAULT_TOKEN_LIMIT,     
       tokens_used: 0,
       last_reset_date: currentTime,
       stripe_subscription_id: stripeSubscriptionId,
@@ -82,18 +86,50 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     console.log('Client reference ID:', clientReferenceId);
     const [userId, modelId] = clientReferenceId.split('_');
     console.log(`Extracted user ID: ${userId}, model ID: ${modelId}`);
-    await updateUserSubscription(userId, modelId, 'premium', session.subscription as string);
+    
+    // Retrieve the subscription to determine the product
+    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+    const productId = subscription.items.data[0].price.product;
+    console.log('Product ID:', productId);
+    console.log('STRIPE_PREMIUM_PRODUCT_ID:', process.env.STRIPE_PREMIUM_PRODUCT_ID);
+    console.log('STRIPE_ULTRA_PRODUCT_ID:', process.env.STRIPE_ULTRA_PRODUCT_ID);
+    
+    let subscriptionType;
+    if (productId === process.env.STRIPE_PREMIUM_PRODUCT_ID) {
+      subscriptionType = 'premium';
+    } else if (productId === process.env.STRIPE_ULTRA_PRODUCT_ID) {
+      subscriptionType = 'ultra';
+    } else {
+      console.error('Unknown product ID:', productId);
+      subscriptionType = 'default';
+    }
+    
+    console.log('Determined subscription type:', subscriptionType);
+    
+    await updateUserSubscription(userId, modelId, subscriptionType, session.subscription as string);
   } else {
     console.error('No client_reference_id found in session');
   }
 }
+
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   console.log('Handling customer.subscription.updated');
   const userId = subscription.metadata?.user_id;
   const modelId = subscription.metadata?.model_id;
   if (userId && modelId) {
-    const subscriptionType = subscription.cancel_at_period_end ? 'cancelling' : 'premium';
+    const productId = subscription.items.data[0].price.product;
+    let subscriptionType = 'default';
+    if (productId === process.env.STRIPE_PREMIUM_PRODUCT_ID) {
+      subscriptionType = 'premium';
+    } else if (productId === process.env.STRIPE_ULTRA_PRODUCT_ID) {
+      subscriptionType = 'ultra';
+    }
+    
+    if (subscription.cancel_at_period_end) {
+      subscriptionType = 'cancelling';
+    }
+    
     await updateUserSubscription(
       userId, 
       modelId, 
@@ -120,6 +156,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 async function handleAsyncPaymentSuccess(session: Stripe.Checkout.Session) {
   console.log('Handling checkout.session.async_payment_succeeded');
   // Implement similar logic to handleCheckoutSessionCompleted
+  await handleCheckoutSessionCompleted(session);
 }
 
 async function handleAsyncPaymentFailure(session: Stripe.Checkout.Session) {
