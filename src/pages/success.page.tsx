@@ -1,57 +1,30 @@
-//src\pages\success.page.tsx
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import React from 'react';
 
-async function checkSubscriptionStatus(userId: string, modelId: string, expectedType: string) {
-  let attempts = 0;
-  const maxAttempts = 10;
-  const delayMs = 2000;
-
-  while (attempts < maxAttempts) {
-    const response = await fetch(`/api/check-subscription?user_id=${userId}&model_id=${modelId}`);
-    const data = await response.json();
-
-    if (data.subscription_type === expectedType) {
-      return data.subscription_type;
-    }
-
-    attempts++;
-    await new Promise(resolve => setTimeout(resolve, delayMs));
-  }
-
-  throw new Error('Subscription update not detected after multiple attempts');
-}
-
-export default function SubscriptionSuccessPage() {
-  const router = useRouter();
-  const { user_id, model_id, session_id } = router.query;
-  const [status, setStatus] = useState('Processing');
-  const [subscriptionType, setSubscriptionType] = useState('');
-
-  useEffect(() => {
-    if (user_id && model_id && session_id) {
-      fetch(`/api/subscription-success?user_id=${user_id}&model_id=${model_id}&session_id=${session_id}`)
-        .then(res => res.json())
-        .then(data => {
-          setStatus('Payment Successful');
-          return checkSubscriptionStatus(user_id as string, model_id as string, data.expectedSubscriptionType);
-        })
-        .then(finalSubscriptionType => {
-          setStatus('Subscription Confirmed');
-          setSubscriptionType(finalSubscriptionType);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          setStatus('Error');
-        });
-    }
-  }, [user_id, model_id, session_id]);
-
+export default function PaymentSuccessPage() {
   return (
-    <div>
-      <h1>Subscription Status</h1>
-      <p>Status: {status}</p>
-      {subscriptionType && <p>Subscription Type: {subscriptionType}</p>}
+    <div className="font-sans max-w-2xl mx-auto p-6 text-center">
+      <h1 className="text-4xl font-bold mb-2">HELLO HUMAN</h1>
+      <h2 className="text-2xl text-gray-700 mb-6">Payment Status</h2>
+      <p className="text-xl font-semibold text-green-600 mb-4">Payment Successful!</p>
+      <p className="text-lg mb-3">
+        Thank you for your payment. Your subscription has been activated.
+      </p>
+      <p className="text-lg mb-6">
+        Please return to the Telegram bot to continue using the service.
+      </p>
+      <div className="bg-gray-100 p-4 rounded-lg mb-6">
+        <p className="text-md text-gray-700">
+          On your bank statement, this charge will appear as:
+        </p>
+        <p className="text-lg font-semibold text-blue-600 mt-2">
+          https://rainforeststudio.co.uk/
+        </p>
+      </div>
+      <footer className="mt-12 pt-6 border-t border-gray-300">
+        <p className="text-gray-600 my-1">footer.aboutUs</p>
+        <p className="text-gray-600 my-1">footer.description</p>
+        <p className="text-gray-600 my-1">footer.powerBy Contentful</p>
+      </footer>
     </div>
   );
 }
